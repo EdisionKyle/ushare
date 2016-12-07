@@ -1,11 +1,28 @@
+/*
+ *
+ *  *
+ *  *  *
+ *  *  *  * ===================================
+ *  *  *  * Copyright (c) 2016.
+ *  *  *  * 作者：安卓猴
+ *  *  *  * 微博：@安卓猴
+ *  *  *  * 博客：http://sunjiajia.com
+ *  *  *  * Github：https://github.com/opengit
+ *  *  *  *
+ *  *  *  * 注意**：如果您使用或者修改该代码，请务必保留此版权信息。
+ *  *  *  * ===================================
+ *  *  *
+ *  *  *
+ *  *
+ *
+ */
+
 package com.miles.ushare;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,25 +32,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.miles.ushare.adapter.MyRecyclerViewAdapter;
+import com.miles.ushare.adapter.MyStaggeredViewAdapter;
 import com.miles.ushare.utils.SnackbarUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Created by WangChang on 2016/5/15.
+ * Created by Monkey on 2015/6/29.
  */
-public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, RecyclerViewAdapter.OnItemClickListener {
-    private View view;
-    private ViewPager mViewPager;
-    FragmentAdapter mFragmentAdapteradapter;
-    private TabLayout mTabLayout;
-    List<String> titles;
-    List<Fragment> fragments;
+public class MyFragment extends Fragment
+        implements SwipeRefreshLayout.OnRefreshListener, MyRecyclerViewAdapter.OnItemClickListener,
+        MyStaggeredViewAdapter.OnItemClickListener {
+
+    private View mView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-    private RecyclerViewAdapter recyclerViewAdapter;
+    private MyRecyclerViewAdapter mRecyclerViewAdapter;
+    private MyStaggeredViewAdapter mStaggeredAdapter;
+
     private static final int VERTICAL_LIST = 0;
     private static final int HORIZONTAL_LIST = 1;
     private static final int VERTICAL_GRID = 2;
@@ -45,20 +62,20 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.activity_tab_layout, container, false);
-        initViewPager();
-        return view;
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        mView = inflater.inflate(R.layout.frag_main, container, false);
+        return mView;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.id_swiperefreshlayout);
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.id_recyclerview);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) mView.findViewById(R.id.id_swiperefreshlayout);
+        mRecyclerView = (RecyclerView) mView.findViewById(R.id.id_recyclerview);
 
-        flag = 0;
+        flag = (int) getArguments().get("flag");
         configRecyclerView();
 
         // 刷新时，指示器旋转后变化的颜色
@@ -92,47 +109,16 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         }
 
         if (flag != STAGGERED_GRID) {
-            recyclerViewAdapter = new RecyclerViewAdapter(getActivity());
-            recyclerViewAdapter.setOnItemClickListener(this);
-            mRecyclerView.setAdapter(recyclerViewAdapter);
+            mRecyclerViewAdapter = new MyRecyclerViewAdapter(getActivity());
+            mRecyclerViewAdapter.setOnItemClickListener(this);
+            mRecyclerView.setAdapter(mRecyclerViewAdapter);
         } else {
-
+            mStaggeredAdapter = new MyStaggeredViewAdapter(getActivity());
+            mStaggeredAdapter.setOnItemClickListener(this);
+            mRecyclerView.setAdapter(mStaggeredAdapter);
         }
 
         mRecyclerView.setLayoutManager(mLayoutManager);
-    }
-
-    public static HomeFragment newInstance() {
-        HomeFragment fragment = new HomeFragment();
-        return fragment;
-    }
-
-    private void initViewPager() {
-        mViewPager = (ViewPager) view.findViewById(R.id.viewpager);
-        mTabLayout = (TabLayout) view.findViewById(R.id.tabs);
-        titles = new ArrayList<>();
-        titles.add("精选");
-        titles.add("体育");
-        titles.add("巴萨");
-        titles.add("AAAAAA");
-
-        for (int i = 0; i < titles.size(); i++) {
-            mTabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
-        }
-        fragments = new ArrayList<>();
-        for (int i = 0; i < titles.size(); i++) {
-            Bundle mBundle = new Bundle();
-            mBundle.putInt("flag", i);
-            ListFragment mFragment = new ListFragment();
-            mFragment.setArguments(mBundle);
-            fragments.add(i, mFragment);
-        }
-        mFragmentAdapteradapter =
-                new FragmentAdapter(getFragmentManager(), fragments, titles);
-        //给ViewPager设置适配器
-        mViewPager.setAdapter(mFragmentAdapteradapter);
-        //将TabLayout和ViewPager关联起来。
-        mTabLayout.setupWithViewPager(mViewPager);
     }
 
     @Override
@@ -145,10 +131,12 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 mSwipeRefreshLayout.setRefreshing(false);
                 int temp = (int) (Math.random() * 10);
                 if (flag != STAGGERED_GRID) {
-                    recyclerViewAdapter.mDatas.add(0, "new" + temp);
-                    recyclerViewAdapter.notifyDataSetChanged();
+                    mRecyclerViewAdapter.mDatas.add(0, "new" + temp);
+                    mRecyclerViewAdapter.notifyDataSetChanged();
                 } else {
-
+                    mStaggeredAdapter.mDatas.add(0, "new" + temp);
+                    mStaggeredAdapter.mHeights.add(0, (int) (Math.random() * 300) + 200);
+                    mStaggeredAdapter.notifyDataSetChanged();
                 }
             }
         }, 1000);
@@ -163,5 +151,4 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onItemLongClick(View view, int position) {
         SnackbarUtil.show(mRecyclerView, getString(R.string.item_longclicked), 0);
     }
-
 }

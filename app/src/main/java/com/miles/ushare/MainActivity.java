@@ -12,7 +12,10 @@ import com.ashokvarma.bottomnavigation.BottomNavigationItem;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationBar.OnTabSelectedListener {
-    private ArrayList<Fragment> fragments;
+    private HomeFragment homeFragment;
+    private BookFragment bookFragment;
+    private MusicFragment musicFragment;
+    private TvFragment tvFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +32,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationB
                 .addItem(new BottomNavigationItem(R.mipmap.ic_tv_white_24dp, "我的").setActiveColorResource(R.color.orange))
                 .setFirstSelectedPosition(0)
                 .initialise();
-
-        fragments = getFragments();
         setDefaultFragment();
         bottomNavigationBar.setTabSelectedListener(this);
     }
@@ -41,47 +42,50 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationB
     private void setDefaultFragment() {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
-        transaction.replace(R.id.layFrame, HomeFragment.newInstance("Home"));
+        homeFragment = HomeFragment.newInstance();
+        transaction.replace(R.id.layFrame, homeFragment);
         transaction.commit();
-    }
-
-    private ArrayList<Fragment> getFragments() {
-        ArrayList<Fragment> fragments = new ArrayList<>();
-        fragments.add(HomeFragment.newInstance("Home首页"));
-        fragments.add(BookFragment.newInstance("Books视频"));
-        fragments.add(MusicFragment.newInstance("Music关注"));
-        fragments.add(TvFragment.newInstance("Movies & TV我的"));
-        return fragments;
     }
 
     @Override
     public void onTabSelected(int position) {
-        if (fragments != null) {
-            if (position < fragments.size()) {
-                FragmentManager fm = getSupportFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
-                Fragment fragment = fragments.get(position);
-                if (fragment.isAdded()) {
-                    ft.replace(R.id.layFrame, fragment);
-                } else {
-                    ft.add(R.id.layFrame, fragment);
+        FragmentManager fm = getSupportFragmentManager();
+        //开启事务
+        FragmentTransaction transaction = fm.beginTransaction();
+        switch (position) {
+            case 0:
+                if (homeFragment == null) {
+                    homeFragment = HomeFragment.newInstance();
                 }
-                ft.commitAllowingStateLoss();
-            }
+                transaction.replace(R.id.layFrame, homeFragment);
+                break;
+            case 1:
+                if (bookFragment == null) {
+                    bookFragment = BookFragment.newInstance("Books视频");
+                }
+                transaction.replace(R.id.layFrame, bookFragment);
+                break;
+            case 2:
+                if (musicFragment == null) {
+                    musicFragment = MusicFragment.newInstance("Music关注");
+                }
+                transaction.replace(R.id.layFrame, musicFragment);
+                break;
+            case 3:
+                if (tvFragment == null) {
+                    tvFragment = TvFragment.newInstance("Movies & TV我的");
+                }
+                transaction.replace(R.id.layFrame, tvFragment);
+                break;
+            default:
+                break;
         }
+        // 事务提交
+        transaction.commitAllowingStateLoss();
     }
 
     @Override
     public void onTabUnselected(int position) {
-        if (fragments != null) {
-            if (position < fragments.size()) {
-                FragmentManager fm = getSupportFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
-                Fragment fragment = fragments.get(position);
-                ft.remove(fragment);
-                ft.commitAllowingStateLoss();
-            }
-        }
     }
 
     @Override
